@@ -142,7 +142,7 @@ gradlew smoke -Dbrowser=chrome -DremoteURL=https://user1:1234@selenoid.qa.guru/w
 
 ## 🎫 Интеграция с Jira
 
-По каждому сценарию автотеста заведена задача в [Jira](https://jira.qa.guru/browse/NEWAPP-36), в описании — ссылка на запуск в Allure TestOps.
+По каждому сценарию автотеста заведена задача в [Jira](https://jira.qa.guru/browse/NEWAPP-36), в описании — ссылка на запуск в Allure TestOps, а в блок «ТестОпс: Test Artifacts» прикреплён соответствующий тест-кейс из Allure TestOps.
 
 <div align="center">
   <img src="images/jira-issue.png" alt="Jira — задача по автотесту" width="800">
@@ -151,6 +151,10 @@ gradlew smoke -Dbrowser=chrome -DremoteURL=https://user1:1234@selenoid.qa.guru/w
 ## 📨 Уведомление в Telegram при помощи бота
 
 После каждой сборки бот [@electroniktm_qa_bot](https://t.me/electroniktm_qa_bot) отправляет карточку с результатами (статистика, длительность, ссылка на Allure-отчёт) через `allure-notifications` и SOCKS5-прокси курса. Токен бота и `chat_id` существуют только в Jenkins (`notifications/config.json` создаётся шагом сборки), в git — только шаблон [notifications/config.example.json](notifications/config.example.json).
+
+<div align="center">
+  <img src="images/telegram.png" alt="Telegram — карточки результатов сборок" width="480">
+</div>
 
 ## 🎬 Пример видео выполнения тестов на Selenoid
 
