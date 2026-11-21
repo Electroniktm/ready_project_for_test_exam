@@ -1,430 +1,169 @@
-# Автоматизированные тесты форм DemoQA
+# Проект по автоматизации тестирования сайта [Geoscan](https://www.geoscan.ru/ru)
 
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.org/)
-[![Selenide](https://img.shields.io/badge/Selenide-7.16.2-blue.svg)](https://selenide.org/)
-[![JUnit 5](https://img.shields.io/badge/JUnit-5-green.svg)](https://junit.org/junit5/)
-[![JavaFaker](https://img.shields.io/badge/JavaFaker-1.0.2-purple.svg)](https://github.com/BrunoBonacci/java-faker)
-[![Allure](https://img.shields.io/badge/Allure-2.32.0-red.svg)](https://allurereport.org/)
-[![Jenkins](https://img.shields.io/badge/Jenkins-CI-blue.svg)](https://www.jenkins.io/)
+<div align="center">
+  <a href="https://www.geoscan.ru/ru"><img src="images/geoscan-logo.svg" alt="ГК «Геоскан»"></a>
+</div>
 
-> UI-автоматизация веб-форм [DemoQA](https://demoqa.com) на Selenide и JUnit 5 с генерацией случайных данных через JavaFaker, отчётностью Allure Reports и запуском в Jenkins. Параметры запуска (браузер, версия, размер окна, адреса) выносятся в `-D`-свойства и в параметризованную сборку Jenkins. (обновлено 14.11.2026)
-
----
+> UI-автотесты сайта компании «Геоскан» (беспилотные авиационные системы) — готовый проект для тестового задания вакансии «Тестировщик-автоматизатор». Selenide + JUnit 5, отчётность Allure Reports и Allure TestOps, запуски в Jenkins на облачном Selenoid, уведомления в Telegram, интеграция с Jira.
 
 ## 📋 Содержание
 
-- [Обзор](#обзор)
-- [Технологии](#технологии)
-- [Структура проекта](#структура-проекта)
-- [Покрытие тестами](#покрытие-тестами)
-- [Генерация данных](#генерация-данных)
-- [Начало работы](#начало-работы)
-- [Запуск тестов](#запуск-тестов)
-- [Параметры запуска](#️-параметры-запуска)
-- [Принятые решения](#принятые-решения)
-- [Лучшие практики](#лучшие-практики)
-- [CI/CD (Jenkins)](#cicd-jenkins)
-
----
-
-## 🎯 Обзор
-
-Проект демонстрирует современное UI-автоматизированное тестирование веб-форм:
-
-- **Регистрационная форма** — заполнение, валидация обязательных полей, проверка результата
-- **Текстовое поле (Text Box)** — обработка полей ввода и проверка вывода данных
-
-Набор тестов охватывает успешные сценарии, пограничные случаи и негативные сценарии. Все валидные данные генерируются случайно при каждом запуске через JavaFaker, поэтому тесты устойчивы к дублированию и проверяют форму на «живых» значениях.
-
----
-
-## 🛠 Технологии
-
-| Категория | Технология | Версия |
-|------|------|---------|
-| **Язык** | Java | 17 |
-| **Тестовый фреймворк** | JUnit Jupiter | 5.11.4 |
-| **Обёртка Selenium** | Selenide | 7.16.2 |
-| **Генерация данных** | JavaFaker | 1.0.2 |
-| **Отчётность** | Allure Reports | 2.32.0 (allure-selenide) |
-| **Сборка** | Gradle | 9.3.0 |
-| **Браузер** | Chrome | В облачном Selenoid (`selenoid.qa.guru`) |
-
----
-
-## 📁 Структура проекта
-
-```
-parametr-jenkins-loading-ui-tests/
-├── build.gradle                          # Конфигурация сборки и зависимости
-├── notifications/                        # Уведомления о результатах в Telegram
-│   ├── config.example.json               # Шаблон конфига allure-notifications (без токена)
-│   └── README.md                         # Бот, чат, шаги Jenkins, почему токена нет в git
-├── README.MD                             # Этот файл
-├── LICENSE                               # Лицензия
-└── src/
-    └── test/
-        ├── java/
-        │   ├── pages/
-        │   │   ├── TextBoxPage.java      # Page Object: форма Text Box
-        │   │   ├── RegistrationFormPage.java  # Page Object: форма регистрации
-        │   │   └── components/           # Сложные элементы, вынесенные отдельно
-        │   │       ├── DatePicker.java   # Выбор даты рождения
-        │   │       └── GenderRadio.java  # Группа radio-кнопок пола
-        │   ├── testdata/
-        │   │   └── TestData.java         # Фиксированные невалидные и граничные данные
-        │   ├── utils/
-        │   │   └── FakeDataProvider.java # Генерация случайных валидных данных (JavaFaker)
-        │   └── tests/
-        │       ├── TestBase.java         # Базовая конфигурация тестов
-        │       ├── RegistrationFormTests.java  # Тесты регистрационной формы
-        │       └── TextBoxTests.java     # Тесты текстового поля
-        └── resources/
-            └── test.png                  # Файл для проверки загрузки
-```
-
----
-
-## 🧪 Покрытие тестами
-
-### Тесты регистрационной формы ([`RegistrationFormTests.java`](src/test/java/tests/RegistrationFormTests.java))
-
-| Тест | Описание | Тип |
-|------|------|------|
-| `fillAllFieldsAndSubmitTest` | Полное заполнение формы со всеми проверками | ✅ Сценарий успеха |
-| `fillOnlyRequiredFieldsTest` | Минимальная валидная отправка | ✅ Сценарий успеха |
-| `invalidEmailFormatTest` | Обработка ошибки формата email | ❌ Отрицательный |
-| `missingGenderSelectionTest` | Валидация обязательного поля «пол» | ❌ Отрицательный |
-| `invalidPhoneNumberTest` | Валидация номера телефона | ❌ Отрицательный |
-| `tooLongNameTest` | Обработка слишком длинного имени | ⚠️ Крайний случай |
-| `emptyRequiredFieldsTest` | Отправка полностью пустой формы | ❌ Отрицательный |
-
-### Тесты текстового поля ([`TextBoxTests.java`](src/test/java/tests/TextBoxTests.java))
-
-| Тест | Описание | Тип |
-|------|------|------|
-| `successfulFillFormTest` | Полное заполнение валидными данными | ✅ Сценарий успеха |
-| `textBoxMinimalFieldsTest` | Отправка только обязательных полей | ✅ Сценарий успеха |
-| `textBoxEmptyFieldsTest` | Отправка пустой формы | ❌ Отрицательный |
-| `textBoxTooLongNameTest` | Обработка слишком длинного имени | ⚠️ Крайний случай |
-| `failEmailFillFormTest` | Валидация некорректного email | ❌ Отрицательный |
-
----
-
-## 🎲 Генерация данных
-
-Валидные данные генерируются динамически в [`FakeDataProvider.java`](src/test/java/utils/FakeDataProvider.java) на базе JavaFaker. Провайдер — обычный объект (без `static`), создаётся локально в каждом тестовом классе, поэтому экземпляр `Faker` не разделяется между потоками и тесты безопасны при параллельном запуске:
-
-```java
-private final FakeDataProvider fakeData = new FakeDataProvider();
-```
-
-| Метод | Что генерирует |
-|------|------|
-| `randomFirstName()` / `randomLastName()` / `randomFullName()` | Имя, фамилия, полное имя |
-| `randomEmail()` | Корректный email-адрес |
-| `randomPhone()` | 10-значный номер, начинающийся с цифры 6–9 |
-| `randomGender()` | Male / Female / Other |
-| `randomSubject()` | Один из доступных предметов |
-| `randomAddress()` | Полный адрес |
-| `randomBirthDate()` | Дата рождения в формате `dd MMMM yyyy` (возраст 18–65) |
-| `randomState()` / `randomCity(state)` | Состояние и город из реального списка формы |
-
-Выбор случайного элемента выполняется штатным методом JavaFaker `faker.options().option(...)`, а соответствие города выбранному состоянию — Switch Expression (Java 14+): неизвестное состояние бросает `IllegalArgumentException` вместо `NullPointerException`:
-
-```java
-public String randomCity(String state) {
-    return switch (state) {
-        case "NCR" -> faker.options().option("Delhi", "Gurgaon", "Noida");
-        case "Uttar Pradesh" -> faker.options().option("Agra", "Lucknow", "Merrut");
-        case "Haryana" -> faker.options().option("Karnal", "Panipat");
-        case "Rajasthan" -> faker.options().option("Jaipur", "Jaiselmer");
-        default -> throw new IllegalArgumentException("Unknown state: " + state);
-    };
-}
-```
-
-Список состояний и городов соответствует реальному выпадающему списку demoqa.com:
-
-| State | Cities |
-|------|------|
-| NCR | Delhi, Gurgaon, Noida |
-| Uttar Pradesh | Agra, Lucknow, Merrut |
-| Haryana | Karnal, Panipat |
-| Rajasthan | Jaipur, Jaiselmer |
-
-Невалидные и граничные значения (слишком длинные строки, некорректные email/телефон) хранятся в [`TestData.java`](src/test/java/testdata/TestData.java), так как они должны быть фиксированными для воспроизводимости негативных сценариев.
-
----
-
-## 🚀 Начало работы
-
-### Требования
-
-- **Java Development Kit (JDK)** 17 или выше
-- **Gradle** 9.3+ (установленный локально; Gradle wrapper в репозиторий не коммитится)
-- Локальный Chrome **не требуется**: браузер запускается в облачном Selenoid (`selenoid.qa.guru`)
-
-### Установка
-
-```bash
-git clone https://github.com/Electroniktm/parametr-jenkins-loading-ui-tests.git
-cd parametr-jenkins-loading-ui-tests
-```
-
----
-
-## ▶️ Запуск тестов
-
-### Запуск всех тестов
-
-```bash
-gradle test
-```
-
-### Запуск конкретного класса тестов
-
-```bash
-gradle test --tests "tests.RegistrationFormTests"
-gradle test --tests "tests.TextBoxTests"
-```
-
-### Запуск конкретного метода
-
-```bash
-gradle test --tests "tests.RegistrationFormTests.fillAllFieldsAndSubmitTest"
-```
-
-### Запуск с подробным выводом
-
-```bash
-gradle test --info
-```
-
----
-
-## ⚙️ Параметры запуска
-
-Все ключевые настройки вынесены из кода в `-D` параметры — одним и тем же кодом можно управлять из командной строки и из Jenkins:
-
-```bash
-gradle clean test \
-  -DbaseUrl=https://demoqa.com \
-  -DremoteURL=https://user1:1234@selenoid.qa.guru/wd/hub \
-  -Dbrowser=chrome \
-  -DbrowserVersion=latest \
-  -Dheadless=false \
-  -DbrowserSize=1920x1280
-```
-
-| Параметр | Что задает | Значение по умолчанию |
-|------|------|------|
-| `baseUrl` | адрес сайта под тестом | `https://demoqa.com` |
-| `remoteURL` | адрес удаленного браузера (Selenoid) | `https://user1:1234@selenoid.qa.guru/wd/hub` |
-| `browser` | браузер | `chrome` |
-| `browserVersion` | версия браузера (`latest` — не фиксировать, хаб отдаёт доступную версию из пула слотов) | `latest` |
-| `headless` | headless-режим браузера | `false` |
-| `browserSize` | разрешение экрана | `1920x1280` |
-
-Механика: Jenkins/CLI передают параметры как системные свойства, `build.gradle` прокидывает их в JVM тестов (`systemProperties(System.getProperties())`), а [`TestBase.java`](src/test/java/tests/TestBase.java) читает через `System.getProperty("имя", "значение по умолчанию")` — поэтому запуск без параметров работает с дефолтами:
-
-```java
-Configuration.baseUrl = System.getProperty("baseUrl", "https://demoqa.com");
-Configuration.browser = System.getProperty("browser", "chrome");
-Configuration.browserSize = System.getProperty("browserSize", "1920x1280");
-Configuration.remote = System.getProperty("remoteURL", "https://user1:1234@selenoid.qa.guru/wd/hub");
-Configuration.headless = Boolean.parseBoolean(System.getProperty("headless", "false"));
-
-String browserVersion = System.getProperty("browserVersion", "");
-if (!browserVersion.isEmpty() && !browserVersion.equalsIgnoreCase("latest")) {
-    Configuration.browserVersion = browserVersion;
-}
-```
-
-> ⚠️ Справедливости ради: фиксация нестандартного `browserSize` (например, `1366x768`) обнажила особенность demoqa — на маленьких разрешениях рекламный оверлей перекрывает кнопку Submit (`ElementClickInterceptedException`). Механизм параметров работает, но разрешение лучше подбирать под приложение.
-
----
-
-## 🎨 Принятые решения
-
-### Паттерн Page Object
-
-Все локаторы вынесены из тестовых классов в page objects — в тестах остались только вызовы методов и данные:
-
-```java
-registrationFormPage.open();
-registrationFormPage.fillFirstName(firstName)
-        .fillLastName(lastName)
-        .fillEmail(email)
-        .selectGender(gender);
-registrationFormPage.submit();
-registrationFormPage.checkModalVisible();
-```
-
-Структура:
-
-- [`pages/TextBoxPage.java`](src/test/java/pages/TextBoxPage.java) — элементы и действия формы Text Box
-- [`pages/RegistrationFormPage.java`](src/test/java/pages/RegistrationFormPage.java) — элементы и действия формы регистрации
-- Сложные элементы вынесены в `pages/components`:
-  - [`DatePicker.java`](src/test/java/pages/components/DatePicker.java) — выбор даты рождения
-  - [`GenderRadio.java`](src/test/java/pages/components/GenderRadio.java) — группа radio-кнопок пола
-
-Методы page objects возвращают `this`, поэтому заполнение формы читается как цепочка действий.
-
-### Разделение данных: генерация + фиксированные значения
-
-Валидные данные генерируются случайно через [`FakeDataProvider`](src/test/java/utils/FakeDataProvider.java), невалидные и граничные — хранятся в [`TestData`](src/test/java/testdata/TestData.java). В каждом тесте данные берутся в локальные переменные и используются и для заполнения, и для проверок:
-
-```java
-String firstName = fakeData.randomFirstName();
-String email = fakeData.randomEmail();
-
-registrationFormPage.fillFirstName(firstName)
-        .fillEmail(email);
-// ...
-registrationFormPage.checkResultTableContains(firstName + " " + lastName);
-registrationFormPage.checkResultTableContains(email);
-```
-
-### Выбор даты рождения
-
-Дата рождения генерируется штатным методом JavaFaker `faker.date().birthday(18, 65)` и форматируется одной строкой через `SimpleDateFormat` в формат `dd MMMM yyyy` (например, `05 June 2023`) — именно его принимает поле даты. Дата выставляется напрямую через `setValue`, что надёжнее кликов по календарю:
-
-```java
-public String randomBirthDate() {
-    Date birthday = faker.date().birthday(18, 65);
-    return new SimpleDateFormat("dd MMMM yyyy").format(birthday);
-}
-```
-
-### Выбор состояния и города
-
-Состояние выбирается случайно через `faker.options().option(...)`, город — Switch Expression по выбранному состоянию (см. [Генерация данных](#-генерация-данных)). В UI оба значения выбираются кликом по выпадающему списку и последующим кликом по опции с нужным текстом:
-
-```java
-stateSelect.click();
-stateCityWrapper.$(byText(value)).shouldBe(visible).click();
-```
-
-Город всегда выбирается из списка городов выбранного состояния, поэтому значение гарантированно присутствует в выпадающем списке.
-
-### Загрузка ресурсов через classpath
-
-Загрузка файлов использует `uploadFromClasspath` для независимости от окружения:
-
-```java
-uploadPicture.uploadFromClasspath("test.png");
-```
-
-### Паттерны Selenide
-
-- **Цепочечные селекторы** для вложенных элементов
-- **Проверка CSS-границ**: `cssValue("border-color", "rgb(220, 53, 69)")` для состояний ошибок
-- **Явные ожидания видимости** перед кликом по опциям
-
----
-
-## 📐 Лучшие практики
-
-| Практика | Реализация |
-|------|------|
-| **Page Object Pattern** | Локаторы вынесены в `pages/` и `pages/components/`, в тестах — только методы page objects |
-| **Data-Driven Testing** | Валидные данные генерируются через JavaFaker, невалидные — в `TestData.java` |
-| **Потокобезопасность** | `FakeDataProvider` — инстанс без `static`, каждый тест получает собственный `Faker` |
-| **Современный синтаксис Java** | Switch Expression (Java 14+) для выбора города по состоянию, `faker.options().option(...)` вместо ручных списков |
-| **Описательные имена тестов** | `invalidEmailFormatTest`, `missingGenderSelectionTest` |
-| **Явные ассерции** | `shouldHave(text(...))` для проверок |
-| **Чистый код** | Без inline-комментариев; самодокументирующиеся имена методов |
-| **Управление конфигурацией** | Настройки централизованы в `TestBase.beforeALL()`, все параметры запуска переопределяются `-D`-свойствами без изменения кода |
-
----
-
-## 📸 Тестовые ресурсы
-
-| Файл | Назначение |
-|------|------|
-| [`test.png`](src/test/resources/test.png) | Образец изображения для тестирования загрузки файлов |
-
----
-
-## 🔧 Конфигурация
-
-Базовая настройка тестов — в [`TestBase.java`](src/test/java/tests/TestBase.java): слушатель `AllureSelenide`, таймаут и все параметры запуска, которые читаются из `-D` свойств (по умолчанию — из значений `System.getProperty`). Подробный список параметров — в разделе [Параметры запуска](#️-параметры-запуска).
-
-Слушатель `AllureSelenide` (скриншоты + исходник страницы при падении) подключается в каждом тесте:
-
-```java
-@BeforeEach
-void addListener() {
-    SelenideLogger.addListener("AllureSelenide",
-            new AllureSelenide().screenshots(true).savePageSource(true));
-}
-```
-
----
-
-## 🏗 CI/CD (Jenkins)
-
-Параметризованная сборка [`electroniktm_demoqa_ui_tests`](https://jenkins.qa.guru/job/electroniktm_demoqa_ui_tests/) прогоняется в Jenkins: git-склонирование репозитория → `gradle clean test` с параметрами сборки → публикация отчёта Allure.
-
-Перед запуском в Jenkins задаются параметры сборки трёх типов — **выпадающие списки**, **поля ввода** и **чекбокс** — и передаются в тесты как `-D` свойства (галочка *Pass all build parameters as system properties* в Gradle-шаге + `systemProperties(System.getProperties())` в `build.gradle`):
-
-| Параметр | Тип в Jenkins | Значение по умолчанию |
+- [Технологии и инструменты](#-технологии-и-инструменты)
+- [Реализованные проверки](#-реализованные-проверки)
+- [Сборка в Jenkins](#-сборка-в-jenkins)
+- [Команды для запуска из терминала](#-команды-для-запуска-из-терминала)
+- [Интеграция с Allure Report](#-интеграция-с-allure-report)
+- [Интеграция с Allure TestOps](#-интеграция-с-allure-testops)
+- [Интеграция с Jira](#-интеграция-с-jira)
+- [Уведомление в Telegram при помощи бота](#-уведомление-в-telegram-при-помощи-бота)
+- [Пример видео выполнения тестов на Selenoid](#-пример-видео-выполнения-тестов-на-selenoid)
+
+## 🛠 Технологии и инструменты
+
+<p align="center">
+<a href="https://openjdk.org/"><img src="https://img.shields.io/badge/Java-17-orange.svg" alt="Java"></a>
+<a href="https://junit.org/junit5/"><img src="https://img.shields.io/badge/JUnit%205-5.11-green.svg" alt="JUnit 5"></a>
+<a href="https://gradle.org/"><img src="https://img.shields.io/badge/Gradle-9.3-blue.svg" alt="Gradle"></a>
+<a href="https://selenide.org/"><img src="https://img.shields.io/badge/Selenide-7.16-red.svg" alt="Selenide"></a>
+<a href="https://aerokube.com/selenoid/"><img src="https://img.shields.io/badge/Selenoid-cloud-lightgrey.svg" alt="Selenoid"></a>
+<a href="https://allurereport.org/"><img src="https://img.shields.io/badge/Allure%20Report-2.32-red.svg" alt="Allure Report"></a>
+<a href="https://allure.qa.guru/"><img src="https://img.shields.io/badge/Allure%20TestOps-5.x-blue.svg" alt="Allure TestOps"></a>
+<a href="https://www.jenkins.io/"><img src="https://img.shields.io/badge/Jenkins-CI-blue.svg" alt="Jenkins"></a>
+<a href="https://www.atlassian.com/software/jira"><img src="https://img.shields.io/badge/Jira-integration-blue.svg" alt="Jira"></a>
+<a href="https://telegram.org/"><img src="https://img.shields.io/badge/Telegram-bot-blue.svg" alt="Telegram"></a>
+<a href="https://github.com/"><img src="https://img.shields.io/badge/GitHub-repository-black.svg" alt="GitHub"></a>
+</p>
+
+- **Java 17** — язык разработки тестов
+- **Selenide 7.16** — обёртка над Selenium WebDriver, автоматические ожидания и скриншоты
+- **JUnit 5.11** — тестовый фреймворк, смоук-набор собран тегом `smoke`
+- **Gradle 9.3** — сборка проекта
+- **Allure Report 2.32** — отчёты с вложениями: скриншоты, page source, логи консоли браузера, видео
+- **Allure TestOps 5** — хранение тест-кейсов, ручные проверки, приёмка результатов с Jenkins
+- **Jenkins** — параметризованная CI-сборка на ноде `java`
+- **Selenoid** (облачный `selenoid.qa.guru`) — удалённый запуск браузеров с VNC и видеозаписью
+- **Jira** — задачи по сценариям автотестов
+- **Telegram-бот** — уведомления о результатах сборки
+
+## ✅ Реализованные проверки
+
+| Тест | Описание |
+|------|----------|
+| `homepageOpensTest` | Главная страница `/ru` открывается: логотип и пункты меню на месте |
+| `productCatalogShowsModelsTest` | Каталог «Продукты» показывает модельный ряд: Геоскан 701, Gemini, Пионер |
+| `productCardHasSpecsTest` | Карточка продукта Gemini содержит технические характеристики (Тип БВС, масса) |
+| `servicesPageListsServicesTest` | Страница «Услуги» содержит 5+ услуг со ссылками (Аэрофотосъемка, Магнитная съемка) |
+| `blogHasArticlesTest` | В блоге есть статьи, открытие статьи показывает её заголовок |
+| `languageSwitchTest` | Переключатель языка меняет язык интерфейса RU ↔ EN |
+| `contactFormValidationTest` | Форма «Связаться с нами» не пропускает некорректный email (HTML5-валидация) |
+
+Все тесты помечены тегом `smoke`. Ручные проверки (оформление заказа, подписка, «Заказать звонок», поиск, сравнение товаров) заведены в Allure TestOps — они сознательно не автоматизированы, чтобы не отправлять реальные заявки с сайта.
+
+## 🏗 Сборка в Jenkins
+
+Параметризованная сборка [44_Reint_Geoscan_autotests](https://jenkins.qa.guru/job/44_Reint_Geoscan_autotests/): клонирование репозитория → `clean test` с параметрами → публикация результатов в Allure TestOps (allurectl) → Allure-отчёт → карточка в Telegram.
+
+<div align="center">
+  <img src="images/jenkins-job.png" alt="Jenkins job" width="800">
+</div>
+
+### Параметры сборки в Jenkins
+
+<div align="center">
+  <img src="images/jenkins-parameters.png" alt="Параметры сборки Jenkins" width="800">
+</div>
+
+| Параметр | Тип | Значение по умолчанию |
 |------|------|------|
 | `browser` | выпадающий список (chrome / firefox) | `chrome` |
 | `browserVersion` | выпадающий список (latest / 157 / 156 / 155) | `latest` |
-| `headless` | чекбокс (Boolean Parameter) | `false` |
-| `baseUrl` | поле ввода (String Parameter) | `https://demoqa.com` |
-| `browserSize` | поле ввода (String Parameter) | `1920x1280` |
-| `remoteURL` | поле ввода (String Parameter) | `https://user1:1234@selenoid.qa.guru/wd/hub` |
+| `headless` | чекбокс | `false` |
+| `baseUrl` | поле ввода | `https://www.geoscan.ru` |
+| `browserSize` | поле ввода | `1920x1280` |
+| `remoteURL` | поле ввода | `https://user1:1234@selenoid.qa.guru/wd/hub` |
 
-| Настройка джобы | Значение |
-|------|------|
-| **SCM** | `https://github.com/Electroniktm/parametr-jenkins-loading-ui-tests.git`, ветка `main` |
-| **Агент** | нода с меткой `java` (JDK 21) |
-| **Gradle** | установленный в Jenkins `Gradle 8.6`, флаг `--no-daemon`, задачи `clean test` |
-| **Allure** | плагин allure-jenkins-plugin, результаты из `build/allure-results`, отчёт собирается всегда (`ALWAYS`) |
+После Gradle-шага сборка выполняет публикацию результатов в Allure TestOps:
 
-Результаты тестов пишутся в `build/allure-results` (плагин `io.qameta.allure` + адаптер JUnit 5 + AspectJ-weave для автоматических шагов), а Jenkins собирает из них интерактивный отчёт, доступный по ссылке `<job>/allure/`.
+```bash
+curl -sL https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -o allurectl && chmod +x allurectl
+ALLURE_ENDPOINT=https://allure.qa.guru ALLURE_TOKEN=<project api token> ALLURE_PROJECT_ID=5450 \
+  ./allurectl upload --launch-name "44_Reint_Geoscan_autotests #${BUILD_NUMBER}" build/allure-results
+```
 
----
+## ▶️ Команды для запуска из терминала
 
-## 📨 Уведомления о результатах в Telegram
+### Локальный запуск (браузер в облачном Selenoid)
 
-Джоба [`electroniktm_telegram_demoqa_ui_tests`](https://jenkins.qa.guru/job/electroniktm_telegram_demoqa_ui_tests/) — та же параметризованная сборка, дополненная отправкой карточки результатов в Telegram после сборки. Подробная инструкция (бот, личный чат и группа, настройка джобы, версии) — в [notifications/README.md](notifications/README.md).
+```bash
+gradlew clean test
+  -Dbrowser=chrome              # браузер: chrome | firefox
+  -DbrowserVersion=latest       # версия браузера; latest — не фиксировать (пул слотов Selenoid)
+  -DbrowserSize=1920x1280       # размер окна браузера
+  -Dheadless=false              # true — без GUI
+  -DbaseUrl=https://www.geoscan.ru   # адрес тестируемого сайта
+  -DremoteURL=https://user1:1234@selenoid.qa.guru/wd/hub  # адрес удалённого браузера (Selenoid)
+```
 
-| Шаг джобы | Назначение |
-|------|------|
-| Gradle `clean test` | запуск UI-тестов с параметрами сборки |
-| Allure (allure-jenkins-plugin) | сборка отчёта; в workspace появляется `allure-report/widgets/summary.json` |
-| Create/Update Text File | создаёт `notifications/config.json` в workspace (параметры карточки, `chat_id`, токен) |
-| Post build task | вызывает агентский хелпер `/opt/qa-guru/bin/send-allure-telegram.sh allure2` (jar 4.11.1, SOCKS5-прокси курса описан в блоке `proxy` конфига) |
+### Запуск смоук-набора
 
-| Что в git | Что только в Jenkins |
-|------|------|
-| `notifications/config.example.json` с заглушками, документация | реальный `notifications/config.json` с токеном бота и `chat_id`, jar-файл |
+```bash
+gradlew smoke -Dbrowser=chrome -DremoteURL=https://user1:1234@selenoid.qa.guru/wd/hub
+```
 
----
+Значения по умолчанию зашиты в коде ([TestBase.java](src/test/java/tests/TestBase.java)), поэтому `gradlew test` без параметров запускает все тесты в Chrome через Selenoid. Параметры передаются в JVM тестов через `systemProperties(System.getProperties())` в [build.gradle](build.gradle).
 
-## 🤝 Вклад в проект
+## 📈 Интеграция с Allure Report
 
-1. Следуйте существующим соглашениям об именовании тестов
-2. Используйте текстовые селекторы для поиска элементов
-3. Добавляйте ассерции для всех пользовательских проверок
-4. Делайте тесты независимыми и идемпотентными
+Отчёт собирается из `build/allure-results` плагином allure-jenkins-plugin и доступен на странице каждой сборки: [сборка №2](https://jenkins.qa.guru/job/44_Reint_Geoscan_autotests/2/allure/). Слушатель `AllureSelenide` + расширение [AttachmentsExtension](src/test/java/helpers/AttachmentsExtension.java) прикрепляют к каждому тесту скриншот, page source, логи консоли браузера и видео из Selenoid.
 
----
+<div align="center">
+  <img src="images/allure-overview.png" alt="Allure Report — Overview" width="800">
+</div>
 
-## 📄 Лицензия
+<div align="center">
+  <img src="images/allure-graphs.png" alt="Allure Report — Graphs" width="800">
+</div>
 
-Этот проект создан в образовательных целях. Тесты работают с [demoqa.com](https://demoqa.com) — специальным сайтом для практики автоматизации.
+## 📊 Интеграция с Allure TestOps
+
+Проект [44_Reint_Geoscan](https://allure.qa.guru/project/5450/launches) в Allure TestOps: результаты каждой сборки Jenkins публикуются шагом `allurectl upload`, тест-план объединяет 7 автоматизированных смоук-тестов и 5 ручных проверок.
+
+<div align="center">
+  <img src="images/testops-dashboard.png" alt="Allure TestOps — Dashboard" width="800">
+</div>
+
+<div align="center">
+  <img src="images/testops-launch-2.png" alt="Allure TestOps — запуск со сборки Jenkins" width="800">
+</div>
+
+<div align="center">
+  <img src="images/testops-testplan.png" alt="Allure TestOps — тест-план с ручными проверками" width="800">
+</div>
+
+## 🎫 Интеграция с Jira
+
+По каждому сценарию автотеста заведена задача в [Jira](https://jira.qa.guru/browse/NEWAPP-36), в описании — ссылка на запуск в Allure TestOps.
+
+<div align="center">
+  <img src="images/jira-issue.png" alt="Jira — задача по автотесту" width="800">
+</div>
+
+## 📨 Уведомление в Telegram при помощи бота
+
+После каждой сборки бот [@electroniktm_qa_bot](https://t.me/electroniktm_qa_bot) отправляет карточку с результатами (статистика, длительность, ссылка на Allure-отчёт) через `allure-notifications` и SOCKS5-прокси курса. Токен бота и `chat_id` существуют только в Jenkins (`notifications/config.json` создаётся шагом сборки), в git — только шаблон [notifications/config.example.json](notifications/config.example.json).
+
+## 🎬 Пример видео выполнения тестов на Selenoid
+
+Видео каждой сессии пишется Selenoid (`enableVNC`/`enableVideo` в [TestBase.java](src/test/java/tests/TestBase.java)) и прикрепляется к тесту в отчёте. Ниже — gif из видео выполнения теста:
+
+<div align="center">
+  <img src="images/test.gif" alt="Выполнение теста в Selenoid" width="720">
+</div>
 
 ---
 
 <div align="center">
 
-**Создано с ❤️ на Selenide + JUnit 5 + JavaFaker**
-
-[⬆ Наверх](#автоматизированные-тесты-форм-demoqa)
+**Создано с ❤️ на Selenide + JUnit 5 + Allure**
 
 </div>
