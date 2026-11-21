@@ -1,0 +1,53 @@
+plugins {
+    id 'java-library'
+    id 'io.qameta.allure' version '4.3.1' // свежий плагин (как в allure-reports-selenide-github-issue)
+}
+
+repositories {
+    mavenCentral()
+}
+
+def allureVersion = "2.32.0"
+
+allure {
+    version.set(allureVersion)               // Allure 2 commandline runtime (совпадает с allure-selenide)
+    adapter {                                 // генерация результатов в build/allure-results
+        allureJavaVersion.set(allureVersion) // адаптеры той же версии (allure-junit5 добавляется автоматически)
+        aspectjWeaver.set(true)              // weaving для @Step
+    }
+}
+
+dependencies {
+    testImplementation (
+            "com.codeborne:selenide:7.16.2",
+            "io.qameta.allure:allure-selenide:$allureVersion",
+            "org.junit.jupiter:junit-jupiter:5.11.4",
+            "org.slf4j:slf4j-simple:2.0.17")
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    ignoreFailures = true // сборка не падает, результаты видны в Allure
+    // прокидываем -D параметры (в т.ч. из Jenkins: remoteURL) в JVM тестов —
+    // TestBase читает их через System.getProperty(...)
+    systemProperties(System.getProperties())
+
+    testLogging {
+        lifecycle {
+            events "started", "skipped", "failed", "standard_error", "standard_out"
+            exceptionFormat "short"
+        }
+    }
+}
+
+// запуск смоук-набора по тегу: ./gradlew smoke
+tasks.register('smoke', Test) {
+    useJUnitPlatform {
+        includeTags 'smoke'
+    }
+}

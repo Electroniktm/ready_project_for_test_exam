@@ -1,0 +1,53 @@
+# Build outputs
+build/
+out/
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+factorypath/
+
+# Test reports and results
+build/reports/
+build/test-results/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets and credentials
+*.keystore
+*.pem
+*.jks
+
+# Logs
+*.log
+
+# Gradle wrapper (not committed)
+gradlew
+gradlew.bat
+gradle/wrapper/
+
+# Allure report generated in the workspace by Jenkins
+allure-report/
+allure-results/
+
+# Telegram notifications: real config and jar are created by Jenkins, never committed
+notifications/config.json
+notifications/*.jar
+
+# Jenkins REST toolkit (contains the Jenkins API token)
+.jenkins-toolkit/
+
+# Local working docs (plans, drafts) — not part of the public repo
+docs/
