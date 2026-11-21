@@ -1,0 +1,42 @@
+package pages;
+
+import com.codeborne.selenide.Selenide;
+import io.qameta.allure.Step;
+import org.junit.jupiter.api.Assertions;
+
+import static com.codeborne.selenide.WebDriverConditions.urlContaining;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.webdriver;
+
+public class ContactsPage {
+
+    @Step("Открываем страницу «Контакты»")
+    public ContactsPage openContacts() {
+        open("/ru/contacts");
+        return this;
+    }
+
+    @Step("Заполняем форму «Связаться с нами» с некорректным email")
+    public ContactsPage fillFormWithInvalidEmail() {
+        $("#edit-name").setValue("Тест Тестов");
+        $("#edit-email").setValue("invalid-email");
+        return this;
+    }
+
+    @Step("Проверяем, что форма не пропустит некорректный email: HTML5-валидация даёт сообщение об ошибке")
+    public ContactsPage checkEmailRejectedByValidation() {
+        String validationMessage = Selenide.executeJavaScript(
+                "const el = document.querySelector('#edit-email');"
+                        + "return el.matches(':invalid') ? el.validationMessage : null;");
+        Assertions.assertNotNull(validationMessage,
+                "Email «invalid-email» должен быть помечен как некорректный с сообщением об ошибке");
+        return this;
+    }
+
+    @Step("Проверяем, что мы остались на странице контактов")
+    public ContactsPage checkFormNotSubmitted() {
+        webdriver().shouldHave(urlContaining("/ru/contacts"));
+        return this;
+    }
+}
