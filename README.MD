@@ -150,7 +150,7 @@ gradlew smoke -Dbrowser=chrome -DremoteURL=https://user1:1234@selenoid.qa.guru/w
 
 ## 📨 Уведомление в Telegram при помощи бота
 
-После каждой сборки бот [@electroniktm_qa_bot](https://t.me/electroniktm_qa_bot) отправляет карточку с результатами (статистика, длительность, ссылка на Allure-отчёт) через `allure-notifications` и SOCKS5-прокси курса. Токен бота и `chat_id` существуют только в Jenkins (`notifications/config.json` создаётся шагом сборки), в git — только шаблон [notifications/config.example.json](notifications/config.example.json).
+После каждой сборки бот [@electroniktm_qa_bot](https://t.me/electroniktm_qa_bot) отправляет карточку с результатами (статистика, длительность, ссылка на Allure-отчёт) через `allure-notifications`.
 
 <div align="center">
   <img src="images/telegram.png" alt="Telegram — карточки результатов сборок" width="480">
