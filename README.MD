@@ -38,7 +38,7 @@
 - **Selenide 7.16** — обёртка над Selenium WebDriver, автоматические ожидания и скриншоты
 - **JUnit 5.11** — тестовый фреймворк, смоук-набор собран тегом `smoke`
 - **Gradle 9.3** — сборка проекта
-- **Allure Report 2.32** — отчёты с вложениями: скриншоты, page source, логи консоли браузера, видео
+- **Allure Report 2.32** — отчёты с вложениями
 - **Allure TestOps 5** — хранение тест-кейсов, ручные проверки, приёмка результатов с Jenkins
 - **Jenkins** — параметризованная CI-сборка на ноде `java`
 - **Selenoid** (облачный `selenoid.qa.guru`) — удалённый запуск браузеров с VNC и видеозаписью
@@ -110,7 +110,7 @@ gradlew clean test
 gradlew smoke -Dbrowser=chrome -DremoteURL=https://user1:1234@selenoid.qa.guru/wd/hub
 ```
 
-Значения по умолчанию зашиты в коде ([TestBase.java](src/test/java/tests/TestBase.java)), поэтому `gradlew test` без параметров запускает все тесты в Chrome через Selenoid. Параметры передаются в JVM тестов через `systemProperties(System.getProperties())` в [build.gradle](build.gradle).
+Значения по умолчанию зашиты в коде ([TestBase.java](src/test/java/tests/TestBase.java)), поэтому `gradlew test` без параметров запускает все тесты в Chrome через Selenoid.
 
 ## 📈 Интеграция с Allure Report
 
