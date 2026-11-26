@@ -18,9 +18,9 @@ public class ServicesPage {
         return this;
     }
 
-    @Step("Проверяем заголовок «Наши услуги»")
-    public ServicesPage checkTitle() {
-        $("h1").shouldHave(text("Наши услуги"));
+    @Step("Проверяем заголовок «{expected}»")
+    public ServicesPage checkTitle(String expected) {
+        $("h1").shouldHave(text(expected));
         return this;
     }
 

@@ -43,7 +43,7 @@ public class GeoscanTests extends TestBase {
         mainPage.openMain()
                 .openProductFromFrontpage("Геоскан Gemini")
                 .checkProductName("Геоскан Gemini")
-                .checkSpecsVisible()
+                .checkSpecsSection("Технические характеристики", "БВС")
                 .checkSpecValue("Тип БВС", "мультироторный")
                 .checkSpecValue("Масса (с АКБ и винтами)", "2 кг");
     }
@@ -52,7 +52,7 @@ public class GeoscanTests extends TestBase {
     @DisplayName("Страница «Услуги» содержит список услуг со ссылками")
     public void servicesPageListsServicesTest() {
         servicesPage.openServices()
-                .checkTitle()
+                .checkTitle("Наши услуги")
                 .checkServicesCount(5)
                 .checkServiceLink("Аэрофотосъемка")
                 .checkServiceLink("Магнитная съемка");
@@ -62,7 +62,7 @@ public class GeoscanTests extends TestBase {
     @DisplayName("В блоге есть статьи, статья открывается со своим заголовком")
     public void blogHasArticlesTest() {
         blogPage.openBlog()
-                .checkTitle()
+                .checkTitle("Блог")
                 .checkArticlesPresent()
                 .openFirstArticle()
                 .checkArticleTitleVisible();
@@ -72,19 +72,19 @@ public class GeoscanTests extends TestBase {
     @DisplayName("Переключатель языка меняет язык интерфейса RU ↔ EN")
     public void languageSwitchTest() {
         mainPage.openMain()
-                .checkInterfaceIsRussian()
+                .checkLanguageByLogoAlt("ГК «Геоскан»")
                 .switchLanguage()
-                .checkInterfaceIsEnglish()
+                .checkLanguageByLogoAlt("Geoscan")
                 .switchLanguage()
-                .checkInterfaceIsRussian();
+                .checkLanguageByLogoAlt("ГК «Геоскан»");
     }
 
     @Test
     @DisplayName("Форма «Связаться с нами» не пропускает некорректный email")
     public void contactFormValidationTest() {
         contactsPage.openContacts()
-                .fillFormWithInvalidEmail()
-                .checkEmailRejectedByValidation()
+                .fillContactForm("Тест Тестов", "invalid-email")
+                .checkEmailRejectedByValidation("invalid-email")
                 .checkFormNotSubmitted();
     }
 }

@@ -46,15 +46,9 @@ public class MainPage {
         return this;
     }
 
-    @Step("Проверяем, что интерфейс на английском")
-    public MainPage checkInterfaceIsEnglish() {
-        logo.shouldHave(attribute("alt", "Geoscan"));
-        return this;
-    }
-
-    @Step("Проверяем, что интерфейс на русском")
-    public MainPage checkInterfaceIsRussian() {
-        logo.shouldHave(attribute("alt", "ГК «Геоскан»"));
+    @Step("Проверяем, что язык интерфейса по alt логотипа «{alt}»")
+    public MainPage checkLanguageByLogoAlt(String alt) {
+        logo.shouldHave(attribute("alt", alt));
         return this;
     }
 

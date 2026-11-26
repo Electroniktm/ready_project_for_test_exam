@@ -17,9 +17,9 @@ public class BlogPage {
         return this;
     }
 
-    @Step("Проверяем заголовок «Блог»")
-    public BlogPage checkTitle() {
-        $("h1").shouldHave(text("Блог"));
+    @Step("Проверяем заголовок «{expected}»")
+    public BlogPage checkTitle(String expected) {
+        $("h1").shouldHave(text(expected));
         return this;
     }
 

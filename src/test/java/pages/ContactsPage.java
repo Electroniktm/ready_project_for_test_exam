@@ -17,20 +17,20 @@ public class ContactsPage {
         return this;
     }
 
-    @Step("Заполняем форму «Связаться с нами» с некорректным email")
-    public ContactsPage fillFormWithInvalidEmail() {
-        $("#edit-name").setValue("Тест Тестов");
-        $("#edit-email").setValue("invalid-email");
+    @Step("Заполняем форму «Связаться с нами»: имя «{name}», email «{email}»")
+    public ContactsPage fillContactForm(String name, String email) {
+        $("#edit-name").setValue(name);
+        $("#edit-email").setValue(email);
         return this;
     }
 
-    @Step("Проверяем, что форма не пропустит некорректный email: HTML5-валидация даёт сообщение об ошибке")
-    public ContactsPage checkEmailRejectedByValidation() {
+    @Step("Проверяем, что email «{email}» не проходит HTML5-валидацию")
+    public ContactsPage checkEmailRejectedByValidation(String email) {
         String validationMessage = Selenide.executeJavaScript(
                 "const el = document.querySelector('#edit-email');"
                         + "return el.matches(':invalid') ? el.validationMessage : null;");
         Assertions.assertNotNull(validationMessage,
-                "Email «invalid-email» должен быть помечен как некорректный с сообщением об ошибке");
+                "Email «" + email + "» должен быть помечен как некорректный с сообщением об ошибке");
         return this;
     }
 

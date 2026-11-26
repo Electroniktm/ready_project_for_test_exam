@@ -23,11 +23,13 @@ public class ProductCardPage {
         return this;
     }
 
-    @Step("Проверяем, что раздел «Технические характеристики» отрисован")
-    public ProductCardPage checkSpecsVisible() {
-        $$(byText("Технические характеристики")).findBy(visible).shouldBe(visible);
+    @Step("Проверяем, что раздел «{section}» отрисован и группы {groups} видны")
+    public ProductCardPage checkSpecsSection(String section, String... groups) {
+        $$(byText(section)).findBy(visible).shouldBe(visible);
         // группы характеристик — аккордеон, проверяем видимость заголовка группы
-        specsSection.$(byText("БВС")).shouldBe(visible);
+        for (String group : groups) {
+            specsSection.$(byText(group)).shouldBe(visible);
+        }
         return this;
     }
 
